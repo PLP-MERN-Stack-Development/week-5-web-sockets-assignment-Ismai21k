@@ -3,7 +3,8 @@ const User = require('../models/user');
 // Get all users
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}, 'username email online');
+    // Find all users except the currently logged-in user
+    const users = await User.find({ _id: { $ne: req.user.id } }, 'username email online');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch users', error: error.message });

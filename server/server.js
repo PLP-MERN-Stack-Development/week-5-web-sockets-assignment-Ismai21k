@@ -8,6 +8,9 @@ const dotenv = require('dotenv');
 const path = require('path');
 const connectDB = require('./config/db');
 const authRoutes = require('./controllers/authController');
+const authRoute = require('./Routes/authRoute');
+const messageRoute = require('./Routes/messageRoute');
+const userRoute = require('./Routes/userRoute');
 const messageController = require('./controllers/messageController');
 const userController = require('./controllers/userController');
 const authMiddleware = require('./middleware/auth');
@@ -43,14 +46,18 @@ const typingUsers = {};
 // API routes
 const router = express.Router();
 
+// register and login routes
+app.use('/auth', authRoute)
+app.use('/api', messageRoute);
+app.use('/api', userRoute);
 // Auth routes
-router.post('/auth/register', authRoutes.registerUser);
-router.post('/auth/login', authRoutes.loginUser);
+// router.post('/auth/register', authRoutes.registerUser);
+// router.post('/auth/login', authRoutes.loginUser);
 
 // Message routes (protected)
-router.get('/messages', authMiddleware, messageController.getMessages);
-router.post('/messages', authMiddleware, messageController.sendMessage);
-router.post('/messages/read', authMiddleware, messageController.markAsRead);
+// router.get('/messages', authMiddleware, messageController.getMessages);
+// router.post('/messages', authMiddleware, messageController.sendMessage);
+// router.post('/messages/read', authMiddleware, messageController.markAsRead);
 
 // User routes (protected)
 router.get('/users', authMiddleware, userController.getUsers);
@@ -68,7 +75,7 @@ setupSocket(io);
 // Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port http://localhost:${PORT}`);
 });
 
 module.exports = { app, server, io }; 
