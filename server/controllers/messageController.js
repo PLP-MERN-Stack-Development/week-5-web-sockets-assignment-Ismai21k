@@ -46,7 +46,15 @@ const sendMessage = async (req, res) => {
 const markAsRead = async (req, res) => {
   try {
     const { messageId } = req.body;
-    const message = await Message.findByIdAndUpdate(messageId, { read: true }, { new: true });
+    // Ensure the user is the receiver of the message before marking it as read
+    const message = await Message.findOneAndUpdate(
+      { _id: messageId, receiver: req.user.id },
+      { read: true },
+      { new: true }
+    );
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found or user is not the receiver' });
+    }
     res.json(message);
   } catch (error) {
     res.status(500).json({ message: 'Failed to mark as read', error: error.message });

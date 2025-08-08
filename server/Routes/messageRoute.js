@@ -4,8 +4,8 @@ const authMiddleware = require('../middleware/auth');
 const { getMessages, sendMessage, markAsRead } = require('../controllers/messageController');
 // Get messages for a room or between two users
 
-router.get('/messages', getMessages);
-router.post('/messages', sendMessage);
-router.post('/messages/read', markAsRead)
+router.get('/messages', authMiddleware, getMessages);
+router.post('/messages', authMiddleware, sendMessage);
+router.post('/messages/read', authMiddleware, markAsRead)
 
 module.exports = router;
