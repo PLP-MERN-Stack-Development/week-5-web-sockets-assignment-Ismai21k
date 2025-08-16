@@ -55,6 +55,30 @@ export const SocketProvider = ({ children }) => {
     }
   }, [socket, connected]);
 
+  const joinRoom = useCallback((roomName) => {
+    if (socket && connected) {
+      socket.emit('join_room', roomName);
+    }
+  }, [socket, connected]);
+
+  const leaveRoom = useCallback((roomName) => {
+    if (socket && connected) {
+      socket.emit('leave_room', roomName);
+    }
+  }, [socket, connected]);
+
+  const markMessageRead = useCallback((messageId) => {
+    if (socket && connected) {
+      socket.emit('mark_read', messageId);
+    }
+  }, [socket, connected]);
+
+  const addReaction = useCallback((messageId, reaction) => {
+    if (socket && connected) {
+      socket.emit('add_reaction', { messageId, reaction });
+    }
+  }, [socket, connected]);
+
   const sendPrivateMessage = useCallback((to, content) => {
     if (socket && connected) {
       socket.emit('private_message', { to, content });
@@ -73,7 +97,11 @@ export const SocketProvider = ({ children }) => {
     sendMessage,
     sendPrivateMessage,
     sendTyping,
-  }), [socket, connected, sendMessage, sendPrivateMessage, sendTyping]);
+    joinRoom,
+    leaveRoom,
+    markMessageRead,
+    addReaction,
+  }), [socket, connected, sendMessage, sendPrivateMessage, sendTyping, joinRoom, leaveRoom, markMessageRead, addReaction]);
 
   return (
     <SocketContext.Provider value={value}>
@@ -81,3 +109,4 @@ export const SocketProvider = ({ children }) => {
     </SocketContext.Provider>
   );
 };
+
