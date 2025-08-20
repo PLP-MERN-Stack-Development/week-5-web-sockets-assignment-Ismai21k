@@ -13,6 +13,7 @@ const userRoute = require('./Routes/userRoute');
 const roomRoute = require('./Routes/roomRoute');
 const notificationRoute = require('./Routes/notificationRoute');
 const setupSocket = require('./socket');
+const { setIO } = require('./controllers/roomController')
 
 // Load environment variables
 dotenv.config();
@@ -50,6 +51,7 @@ app.get('/', (req, res) => {
 
 // Socket.io setup
 setupSocket(io);
+setIO(io);
 
 // Start server
 const PORT = process.env.PORT || 6000;

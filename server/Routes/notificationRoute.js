@@ -17,3 +17,4 @@ router.put('/:notificationId/read', authMiddleware, markNotificationRead);
 router.get('/unread/count', authMiddleware, getUnreadCount);
 
 module.exports = router;
+

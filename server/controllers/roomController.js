@@ -27,6 +27,13 @@ const getUserRooms = async (req, res) => {
   }
 };
 
+let io; // store socket.io instance
+
+// function to inject io from index.js
+const setIO = (socketIO) => {
+  io = socketIO;
+};
+
 // Create a new room
 const createRoom = async (req, res) => {
   try {
@@ -50,11 +57,18 @@ const createRoom = async (req, res) => {
 
     await room.save();
     const populatedRoom = await room.populate('creator', 'username');
+
+    // ✅ Broadcast new room to everyone
+    if (io) {
+      io.emit('room_created', populatedRoom);
+    }
+
     res.status(201).json(populatedRoom);
   } catch (error) {
     res.status(500).json({ message: 'Failed to create room', error: error.message });
   }
 };
+
 
 // Join a room
 const joinRoom = async (req, res) => {
@@ -133,5 +147,6 @@ module.exports = {
   createRoom,
   joinRoom,
   leaveRoom,
-  getRoomDetails
+  getRoomDetails,
+  setIO
 };

@@ -29,3 +29,4 @@ router.post('/:roomId/leave', authMiddleware, leaveRoom);
 router.get('/:roomId', authMiddleware, getRoomDetails);
 
 module.exports = router;
+
