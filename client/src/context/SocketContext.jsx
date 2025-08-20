@@ -19,7 +19,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      const newSocket = io('http://localhost:5000', {
+             const newSocket = io('http://localhost:5000', {
         auth: {
           token: localStorage.getItem('token'),
         },

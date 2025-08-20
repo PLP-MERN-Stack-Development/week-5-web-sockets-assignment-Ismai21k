@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
+      console.log("login response", data)
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
@@ -93,4 +94,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
 

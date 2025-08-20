@@ -1,18 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ChatRoom from './components/ChatRoom';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SocketProvider } from "./context/SocketContext";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ChatRoom from "./components/ChatRoom";
+import "./App.css";
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
-  
+
   return user ? children : <Navigate to="/login" />;
 };
 
@@ -22,27 +26,28 @@ const AppContent = () => {
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/login" 
-          element={user ? <Navigate to="/chat" /> : <Login />} 
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/chat" /> : <Login />}
         />
-        <Route 
-          path="/register" 
-          element={user ? <Navigate to="/chat" /> : <Register />} 
+        <Route
+          path="/register"
+          element={user ? <Navigate to="/chat" /> : <Register />}
         />
-        <Route 
-          path="/chat" 
+        <Route
+          path="/chat"
           element={
             <PrivateRoute>
               <SocketProvider>
                 <ChatRoom />
               </SocketProvider>
             </PrivateRoute>
-          } 
+          }
         />
-        <Route 
-          path="/" 
-          element={<Navigate to={user ? "/chat" : "/login"} />} 
+        {/* Redirect root */}
+        <Route
+          path="/"
+          element={<Navigate to={user ? "/chat" : "/login"} />}
         />
       </Routes>
     </Router>
