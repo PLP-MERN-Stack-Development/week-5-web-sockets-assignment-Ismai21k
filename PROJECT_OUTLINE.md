@@ -140,3 +140,5 @@ socketio-chat/
 - [ ] Build chat UI components
 - [ ] Implement real-time features (messaging, typing, notifications, presence)
 
+
+

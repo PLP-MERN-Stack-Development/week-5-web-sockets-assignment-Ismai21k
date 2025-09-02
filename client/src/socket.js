@@ -1,5 +1,4 @@
 // socket.js - Socket.io client setup
-
 import { io } from 'socket.io-client';
 import { useEffect, useState } from 'react';
 
@@ -23,10 +22,10 @@ export const useSocket = () => {
   const [typingUsers, setTypingUsers] = useState([]);
 
   // Connect to socket server
-  const connect = (username) => {
+  const connect = ({ userId, username }) => {
     socket.connect();
-    if (username) {
-      socket.emit('user_join', username);
+    if (userId && username) {
+      socket.emit('user_join', { userId, username }); // ✅ matches backend
     }
   };
 
@@ -35,31 +34,36 @@ export const useSocket = () => {
     socket.disconnect();
   };
 
-  // Send a message
-  const sendMessage = (message) => {
-    socket.emit('send_message', { message });
+  // Send a room message
+  const sendMessage = (roomId, content) => {
+    socket.emit('send_message', { room: roomId, content });
   };
 
   // Send a private message
-  const sendPrivateMessage = (to, message) => {
-    socket.emit('private_message', { to, message });
+  const sendPrivateMessage = (to, content) => {
+    socket.emit('send_message', { receiver: to, content });
+  };
+
+  // Join a room
+  const joinRoom = (roomId) => {
+    socket.emit('join_room', roomId);
+  };
+
+  // Leave a room
+  const leaveRoom = (roomId) => {
+    socket.emit('leave_room', roomId);
   };
 
   // Set typing status
-  const setTyping = (isTyping) => {
-    socket.emit('typing', isTyping);
+  const setTyping = (roomId, isTyping, receiver) => {
+    socket.emit('typing', { room: roomId, isTyping, receiver });
   };
 
   // Socket event listeners
   useEffect(() => {
     // Connection events
-    const onConnect = () => {
-      setIsConnected(true);
-    };
-
-    const onDisconnect = () => {
-      setIsConnected(false);
-    };
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
 
     // Message events
     const onReceiveMessage = (message) => {
@@ -72,62 +76,80 @@ export const useSocket = () => {
       setMessages((prev) => [...prev, message]);
     };
 
-    // User events
-    const onUserList = (userList) => {
+    // Online users
+    const onOnlineUsers = (userList) => {
       setUsers(userList);
     };
 
-    const onUserJoined = (user) => {
-      // You could add a system message here
+    // Room events
+    const onRoomCreated = (room) => {
+      // system log
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now(),
           system: true,
-          message: `${user.username} joined the chat`,
+          message: `Room "${room.name}" was created`,
           timestamp: new Date().toISOString(),
         },
       ]);
     };
 
-    const onUserLeft = (user) => {
-      // You could add a system message here
+    const onRoomJoined = ({ roomId, user }) => {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now(),
           system: true,
-          message: `${user.username} left the chat`,
+          message: `${user.username} joined room ${roomId}`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    };
+
+    const onRoomLeft = ({ roomId, user }) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          system: true,
+          message: `${user.username} left room ${roomId}`,
           timestamp: new Date().toISOString(),
         },
       ]);
     };
 
     // Typing events
-    const onTypingUsers = (users) => {
-      setTypingUsers(users);
+    const onTyping = (data) => {
+      if (data.isTyping) {
+        setTypingUsers((prev) => [...prev, data.username]);
+      } else {
+        setTypingUsers((prev) => prev.filter((u) => u !== data.username));
+      }
     };
 
-    // Register event listeners
+    // ✅ Register all listeners
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('receive_message', onReceiveMessage);
     socket.on('private_message', onPrivateMessage);
-    socket.on('user_list', onUserList);
-    socket.on('user_joined', onUserJoined);
-    socket.on('user_left', onUserLeft);
-    socket.on('typing_users', onTypingUsers);
+    socket.on('online_users', onOnlineUsers);
+    socket.on('room_created', onRoomCreated);
+    socket.on('room_joined', onRoomJoined);
+    socket.on('room_left', onRoomLeft);
+    socket.on('typing', onTyping);
 
-    // Clean up event listeners
+    // Cleanup
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('receive_message', onReceiveMessage);
       socket.off('private_message', onPrivateMessage);
-      socket.off('user_list', onUserList);
-      socket.off('user_joined', onUserJoined);
-      socket.off('user_left', onUserLeft);
-      socket.off('typing_users', onTypingUsers);
+      socket.off('online_users', onOnlineUsers);
+      socket.off('room_created', onRoomCreated);
+      socket.off('room_joined', onRoomJoined);
+      socket.off('room_left', onRoomLeft);
+      socket.off('typing', onTyping);
     };
   }, []);
 
@@ -142,8 +164,10 @@ export const useSocket = () => {
     disconnect,
     sendMessage,
     sendPrivateMessage,
+    joinRoom,
+    leaveRoom,
     setTyping,
   };
 };
 
-export default socket; 
+export default socket;

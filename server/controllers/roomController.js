@@ -1,6 +1,13 @@
 const Room = require('../models/room');
 const User = require('../models/user');
 
+let io; // socket.io instance
+
+// function to inject io from index.js
+const setIO = (socketIO) => {
+  io = socketIO;
+};
+
 // Get all public rooms
 const getPublicRooms = async (req, res) => {
   try {
@@ -27,19 +34,11 @@ const getUserRooms = async (req, res) => {
   }
 };
 
-let io; // store socket.io instance
-
-// function to inject io from index.js
-const setIO = (socketIO) => {
-  io = socketIO;
-};
-
-// Create a new room
+// ✅ Create a new room
 const createRoom = async (req, res) => {
   try {
     const { name, description, type = 'public', maxParticipants = 100 } = req.body;
-    
-    // Check if room name already exists
+
     const existingRoom = await Room.findOne({ name });
     if (existingRoom) {
       return res.status(400).json({ message: 'Room name already exists' });
@@ -56,9 +55,10 @@ const createRoom = async (req, res) => {
     });
 
     await room.save();
-    const populatedRoom = await room.populate('creator', 'username');
+    await room.populate('creator', 'username');
+    const populatedRoom = room;
 
-    // ✅ Broadcast new room to everyone
+    // 🔥 Broadcast new room
     if (io) {
       io.emit('room_created', populatedRoom);
     }
@@ -69,21 +69,14 @@ const createRoom = async (req, res) => {
   }
 };
 
-
-// Join a room
+// ✅ Join a room
 const joinRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const room = await Room.findById(roomId);
-    
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
-    }
+    const room = await Room.findById(roomId).populate('creator', 'username');
 
-    if (!room.isActive) {
-      return res.status(400).json({ message: 'Room is not active' });
-    }
-
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+    if (!room.isActive) return res.status(400).json({ message: 'Room is not active' });
     if (room.participants.length >= room.maxParticipants) {
       return res.status(400).json({ message: 'Room is full' });
     }
@@ -94,28 +87,43 @@ const joinRoom = async (req, res) => {
       await room.save();
     }
 
-    const populatedRoom = await room.populate('creator', 'username');
+    await room.populate('participants', 'username online');
+    const populatedRoom = room;
+
+    // 🔥 Broadcast user joined
+    if (io) {
+      io.emit('room_joined', {
+        roomId,
+        user: { id: req.user.id, username: req.user.username }
+      });
+    }
+
     res.json(populatedRoom);
   } catch (error) {
     res.status(500).json({ message: 'Failed to join room', error: error.message });
   }
 };
 
-// Leave a room
+// ✅ Leave a room
 const leaveRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
     const room = await Room.findById(roomId);
-    
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
-    }
+    if (!room) return res.status(404).json({ message: 'Room not found' });
 
     room.participants = room.participants.filter(id => id.toString() !== req.user.id);
     room.admins = room.admins.filter(id => id.toString() !== req.user.id);
     room.lastActivity = new Date();
-    
     await room.save();
+
+    // 🔥 Broadcast user left
+    if (io) {
+      io.emit('room_left', {
+        roomId,
+        user: { id: req.user.id, username: req.user.username }
+      });
+    }
+
     res.json({ message: 'Left room successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to leave room', error: error.message });
@@ -130,7 +138,7 @@ const getRoomDetails = async (req, res) => {
       .populate('creator', 'username')
       .populate('participants', 'username online')
       .populate('admins', 'username');
-    
+
     if (!room) {
       return res.status(404).json({ message: 'Room not found' });
     }

@@ -1,78 +1,165 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=20022589&assignment_repo_type=AssignmentRepo)
 # Real-Time Chat Application with Socket.io
 
-This assignment focuses on building a real-time chat application using Socket.io, implementing bidirectional communication between clients and server.
+A real-time chat application built with **React (frontend)**, **Node.js/Express (backend)**, and **Socket.io** for real-time communication.  
+Users can create accounts, join conversations instantly, and participate in public or private chat groups.
 
-## Assignment Overview
+---
 
-You will build a chat application with the following features:
-1. Real-time messaging using Socket.io
-2. User authentication and presence
-3. Multiple chat rooms or private messaging
-4. Real-time notifications
-5. Advanced features like typing indicators and read receipts
+## 🚀 Features
 
-## Project Structure
+- User authentication (JWT or username-based)
+- Real-time messaging with Socket.io
+- Create and join chat groups (public or private)
+- Online/offline user status
+- Typing indicators
+- Private one-to-one messaging
+- Real-time notifications (new messages, users joining/leaving)
+- File/image sharing (optional)
+- Read receipts & message reactions (planned)
+- Optimized for desktop and mobile
 
-```
+---
+
+## 📂 Project Structure
+
+### Frontend (React)
+
 socketio-chat/
-├── client/                 # React front-end
-│   ├── public/             # Static files
-│   ├── src/                # React source code
-│   │   ├── components/     # UI components
-│   │   ├── context/        # React context providers
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Page components
-│   │   ├── socket/         # Socket.io client setup
-│   │   └── App.jsx         # Main application component
-│   └── package.json        # Client dependencies
-├── server/                 # Node.js back-end
-│   ├── config/             # Configuration files
-│   ├── controllers/        # Socket event handlers
-│   ├── models/             # Data models
-│   ├── socket/             # Socket.io server setup
-│   ├── utils/              # Utility functions
-│   ├── server.js           # Main server file
-│   └── package.json        # Server dependencies
-└── README.md               # Project documentation
-```
+├── client/ # React front-end
+│ ├── public/ # Static files
+│ ├── src/ # React source code
+│ │ ├── components/ # UI components
+│ │ ├── context/ # React context providers
+│ │ ├── hooks/ # Custom React hooks
+│ │ ├── pages/ # Page components
+│ │ ├── socket/ # Socket.io client setup
+│ │ └── App.jsx # Main application component
+│ └── package.json # Client dependencies
 
-## Getting Started
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Follow the setup instructions in the `Week5-Assignment.md` file
-4. Complete the tasks outlined in the assignment
+![Frontend directory](client%20dir.png)
 
-## Files Included
+### Backend (Node.js/Express)
 
-- `Week5-Assignment.md`: Detailed assignment instructions
-- Starter code for both client and server:
-  - Basic project structure
-  - Socket.io configuration templates
-  - Sample components for the chat interface
+├── server/ # Node.js back-end
+│ ├── config/ # Configuration files
+│ ├── controllers/ # Socket event handlers
+│ ├── models/ # Data models
+│ ├── socket/ # Socket.io server setup
+│ ├── utils/ # Utility functions
+│ ├── server.js # Main server file
+│ └── package.json # Server dependencies
+└── README.md # Project documentation
 
-## Requirements
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Modern web browser
-- Basic understanding of React and Express
+![Backend directory](server%20dir.png)
 
-## Submission
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+## 📦 Dependencies
 
-1. Complete both the client and server portions of the application
-2. Implement the core chat functionality
-3. Add at least 3 advanced features
-4. Document your setup process and features in the README.md
-5. Include screenshots or GIFs of your working application
-6. Optional: Deploy your application and add the URLs to your README.md
+### Frontend
+- `react`
+- `react-router-dom`
+- `socket.io-client`
+- `tailwindcss`
+- `@heroicons/react`
+- `@headlessui/react`
+- `axios`
 
-## Resources
+### Backend
+- `bcrypt`
+- `cors`
+- `dotenv`
+- `express`
+- `jsonwebtoken`
+- `mongoose`
+- `socket.io`
 
-- [Socket.io Documentation](https://socket.io/docs/v4/)
-- [React Documentation](https://react.dev/)
-- [Express.js Documentation](https://expressjs.com/)
-- [Building a Chat Application with Socket.io](https://socket.io/get-started/chat) 
+Install dependencies with:
+
+```bash
+# Frontend
+cd client
+npm install
+
+# Backend
+cd server
+npm install
+
+## Tasks & Roadmap
+
+Task 1: Project Setup
+
+ Set up Node.js server with Express
+
+ Configure Socket.io (server + client)
+
+ Create React frontend and connect to backend
+
+Task 2: Core Chat Functionality
+
+ User authentication
+
+ Global chat room
+
+ Display messages (with sender & timestamp)
+
+ Typing indicators
+
+ Online/offline user status
+
+Task 3: Advanced Features
+
+ Private messaging
+
+ Multiple chat rooms
+
+ File/image sharing
+
+ Read receipts
+
+ Message reactions
+
+Task 4: Notifications
+
+ New message notifications
+
+ User join/leave notifications
+
+ Unread message count
+
+ Sound & browser notifications
+
+Task 5: Performance & UX
+
+ Message pagination
+
+ Reconnection logic
+
+ Delivery acknowledgments
+
+ Message search
+
+ Mobile responsiveness
+
+🧩 Chat Flow Diagram
+
+📖 Getting Started
+# Clone the repository
+git clone https://github.com/your-username/socketio-chat.git
+cd socketio-chat
+
+# Install dependencies for both client and server
+cd client && npm install
+cd ../server && npm install
+
+# Start backend
+npm run dev
+
+# Start frontend
+cd ../client
+npm start
+
+📜 License
+
+All rights reserved. © 2025

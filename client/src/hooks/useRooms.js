@@ -31,12 +31,10 @@ export const useRooms = () => {
       setError(null);
       const rooms = await roomService.getUserRooms();
       setUserRooms(rooms);
-      setRooms(prev => {
-        // merge public + user rooms (avoid duplicates)
-        const map = new Map();
-        [...publicRooms, ...rooms].forEach(r => map.set(r._id, r));
-        return Array.from(map.values());
-      });
+      // Merge public + user rooms (avoid duplicates)
+      const map = new Map();
+      [...publicRooms, ...rooms].forEach(r => map.set(r._id, r));
+      setRooms(Array.from(map.values()));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -44,14 +42,12 @@ export const useRooms = () => {
     }
   }, [publicRooms]);
 
-  // Create a new room (only return, let socket handle sync)
+  // Create a new room -> don’t update state here, rely on socket broadcast
   const createRoom = useCallback(async (roomData) => {
     try {
       setLoading(true);
       setError(null);
-      const newRoom = await roomService.createRoom(roomData);
-      // Don’t push to state here -> backend will emit "room_created"
-      return newRoom;
+      return await roomService.createRoom(roomData);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -60,24 +56,12 @@ export const useRooms = () => {
     }
   }, []);
 
-  // Join a room
+  // Join a room -> just tell backend, let socket broadcast update state
   const joinRoom = useCallback(async (roomId) => {
     try {
       setLoading(true);
       setError(null);
-      const room = await roomService.joinRoom(roomId);
-
-      setUserRooms(prev => {
-        const exists = prev.find(r => r._id === roomId);
-        return exists ? prev : [...prev, room];
-      });
-
-      setRooms(prev => {
-        const exists = prev.find(r => r._id === roomId);
-        return exists ? prev : [...prev, room];
-      });
-
-      return room;
+      return await roomService.joinRoom(roomId);
     } catch (err) {
       setError(err.message);
       throw err;
@@ -86,14 +70,12 @@ export const useRooms = () => {
     }
   }, []);
 
-  // Leave a room
+  // Leave a room -> just tell backend, let socket broadcast update state
   const leaveRoom = useCallback(async (roomId) => {
     try {
       setLoading(true);
       setError(null);
       await roomService.leaveRoom(roomId);
-      setUserRooms(prev => prev.filter(r => r._id !== roomId));
-      setRooms(prev => prev.filter(r => r._id !== roomId));
     } catch (err) {
       setError(err.message);
       throw err;
@@ -124,26 +106,46 @@ export const useRooms = () => {
     }
   }, [publicRooms, fetchUserRooms]);
 
-  // 🔥 Socket: Listen for new rooms created by anyone
+  // 🔥 Socket events
   useEffect(() => {
     if (!socket) return;
 
     const handleRoomCreated = (room) => {
-      setRooms(prev => {
-        const exists = prev.find(r => r._id === room._id);
-        return exists ? prev : [...prev, room];
-      });
+      setRooms(prev => prev.find(r => r._id === room._id) ? prev : [...prev, room]);
+      setPublicRooms(prev => prev.find(r => r._id === room._id) ? prev : [...prev, room]);
+    };
 
-      setPublicRooms(prev => {
-        const exists = prev.find(r => r._id === room._id);
-        return exists ? prev : [...prev, room];
-      });
+    const handleRoomJoined = ({ roomId, user }) => {
+      setRooms(prev =>
+        prev.map(r =>
+          r._id === roomId
+            ? { ...r, participants: [...(r.participants || []), user] }
+            : r
+        )
+      );
+    };
+
+    const handleRoomLeft = ({ roomId, user }) => {
+      setRooms(prev =>
+        prev.map(r =>
+          r._id === roomId
+            ? {
+                ...r,
+                participants: (r.participants || []).filter(u => u._id !== user._id)
+              }
+            : r
+        )
+      );
     };
 
     socket.on('room_created', handleRoomCreated);
+    socket.on('room_joined', handleRoomJoined);
+    socket.on('room_left', handleRoomLeft);
 
     return () => {
       socket.off('room_created', handleRoomCreated);
+      socket.off('room_joined', handleRoomJoined);
+      socket.off('room_left', handleRoomLeft);
     };
   }, [socket]);
 
